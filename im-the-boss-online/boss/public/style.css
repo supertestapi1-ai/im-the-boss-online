@@ -1,0 +1,421 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg-dark: #121620;
+    --bg-card: #1c2230;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+    --text-muted: #8a96a8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 1. TOP NAVBAR */
+.top-navbar {
+    height: 50px;
+    background: #161b26;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 18px;
+}
+.nav-left { display: flex; align-items: center; gap: 28px; }
+.logo { font-weight: 700; font-size: 1.1rem; }
+.logo-siam {
+    background: linear-gradient(90deg, #ff4757, #3b82f6, #2ecc71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.logo-sub { color: #fff; font-size: 0.85rem; margin-left: 4px; }
+
+.main-menu { display: flex; gap: 18px; }
+.main-menu a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 13px 0;
+}
+.main-menu a.active, .main-menu a:hover {
+    color: #fff;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+}
+.badge-btn { position: relative; }
+.badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 0.6rem;
+    border-radius: 50%;
+    padding: 1px 4px;
+}
+.user-avatar img { width: 30px; height: 30px; border-radius: 50%; background: #3b82f6; }
+
+/* 2. MAIN LAYOUT */
+.main-layout {
+    flex: 1;
+    display: flex;
+    padding: 12px;
+    gap: 12px;
+    overflow: hidden;
+}
+
+/* Left Toolbar */
+.left-toolbar {
+    width: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tool-item {
+    width: 38px;
+    height: 38px;
+    background: #1c2230;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.user-item { border: 2px solid #e74c3c; }
+
+/* 3. CENTER 3D BOARD VIEWPORT */
+.board-viewport {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1200px;
+}
+
+.board-wrapper {
+    width: 95%;
+    height: 95%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: rotateX(16deg) scale(0.96);
+}
+
+/* Player Tabs Attached to Top */
+.player-tabs {
+    display: flex;
+    width: 98%;
+    gap: 4px;
+    z-index: 2;
+}
+.tab {
+    padding: 4px 16px;
+    border-radius: 6px 6px 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+}
+.p1 { background: #d63031; }
+.p2 { background: #e67e22; }
+.p3 { background: #0984e3; }
+.p4 { background: #27ae60; }
+
+/* Board 3D Canvas */
+.board-3d {
+    width: 98%;
+    flex: 1;
+    background: #eccc68;
+    border: 3px solid #2f3542;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
+
+/* Tile Styles */
+.tile {
+    background: #f1f2f6;
+    color: #2f3542;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ced6e0;
+}
+
+.tile-top, .tile-bottom { height: 45px; flex: 1; }
+.board-middle-row { flex: 1; display: flex; }
+
+.side-col { width: 55px; display: flex; flex-direction: column; }
+.side-col .tile { flex: 1; }
+
+.card-tile { background: #2f3542; color: #fff; }
+.mini-card-back { font-size: 0.5rem; text-align: center; }
+.green-slot { background: #2ed573; }
+
+/* Central Stock Floor */
+.central-floor {
+    flex: 1;
+    background: url('https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1000&q=80') center/cover;
+    position: relative;
+}
+.stock-bg-overlay {
+    width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.boss-logo-banner { text-align: center; }
+.boss-logo-banner h1 {
+    font-size: 1.4rem;
+    color: #f1c40f;
+    text-shadow: 0 2px 8px #000;
+    letter-spacing: 1px;
+}
+.boss-logo-banner p { font-size: 0.7rem; color: #cbd5e1; }
+
+.deal-cards-area {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    align-items: center;
+}
+.deck-box {
+    width: 65px; height: 85px;
+    background: #334155;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+}
+.active-deal-card {
+    width: 95px; height: 105px;
+    background: #ffffff;
+    border-radius: 8px;
+    color: #0f172a;
+    text-align: center;
+    padding: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+.deal-header { color: #dc2626; font-weight: 800; font-size: 1rem; }
+.deal-amount { font-size: 0.75rem; font-weight: 700; margin: 4px 0; }
+
+.bottom-deals { display: flex; justify-content: space-between; }
+.sub-deal {
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* 4. RIGHT SIDEBAR */
+.right-sidebar {
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.side-card-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #f1f5f9;
+}
+.gear-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; }
+
+/* Voice Users */
+.voice-users { list-style: none; font-size: 0.78rem; margin-bottom: 10px; }
+.voice-users li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+}
+.u-controls { display: flex; align-items: center; gap: 6px; }
+.btn-mute {
+    background: #2a3446;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.icon-on { color: #22c55e; }
+.icon-ok { color: #3b82f6; }
+.icon-off { color: #ef4444; }
+
+/* Mic Section */
+.mic-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+.mic-btn-active {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+    cursor: pointer;
+}
+.wave-left, .wave-right {
+    width: 25px; height: 12px;
+    border-bottom: 2px solid #ef4444;
+}
+
+.mic-status-label {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.voice-btn-group { display: flex; gap: 8px; }
+.btn-leave {
+    flex: 1;
+    background: #22c55e;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.btn-setting {
+    background: #334155;
+    border: none;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Action Card Preview */
+.preview-cards-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+.card-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.card-inner-red {
+    width: 75px; height: 100px;
+    background: #dc2626;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+.card-inner-grey {
+    width: 75px; height: 100px;
+    background: #e2e8f0;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+.stop-badge {
+    border: 2px solid #fff;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+.plane-icon { font-size: 1.4rem; }
+.card-caption { font-size: 0.65rem; color: var(--text-muted); }
+
+.deck-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+/* ===== ส่วนเพิ่มสำหรับเกมออนไลน์ ===== */
+.room-tag { color: var(--text-muted); font-size: 0.8rem; }
+.lobby { flex: 1; display: flex; align-items: center; justify-content: center; }
+.lobby-box { width: 320px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.lobby-box h1 { color: #f1c40f; }
+.lobby-box .sub { color: var(--text-muted); font-size: .8rem; }
+input { background: #2a3446; border: 1px solid var(--border-color); color: #fff; padding: 7px 10px; border-radius: 8px; font-size: .8rem; min-width: 0; }
+.row { display: flex; gap: 6px; } .row input { flex: 1; }
+.err { color: #ef4444; font-size: .75rem; min-height: 1em; }
+[hidden] { display: none !important; }
+.tiles-row { display: flex; height: 45px; } .tiles-row .tile { flex: 1; }
+.tab { cursor: pointer; }
+.action-zone { background: rgba(255,255,255,.92); color: #0f172a; border-radius: 6px; padding: 6px 8px; font-size: .75rem; line-height: 1.6; }
+.action-zone .amt { width: 90px; padding: 2px 6px; }
+.hand-card { cursor: pointer; } .hand-card.sel .card-inner-grey { outline: 3px solid #3b82f6; }
+.logbox { height: 150px; overflow: auto; font-size: .72rem; line-height: 1.5; margin-bottom: 8px; color: #cbd5e1; }
+.right-sidebar { overflow: auto; }
+@media (max-width: 900px) { .main-layout { flex-direction: column; overflow: auto; } .left-toolbar { display: none; } .right-sidebar { width: 100%; } .board-viewport { min-height: 460px; } body { overflow: auto; height: auto; } }
+
+.tile { position: relative; }
+.pawn { position: absolute; top: -6px; right: 0; font-size: 1.1rem; filter: drop-shadow(0 2px 2px #000); }
+
+/* ===== กติกาจริง: ช่องดีล / การ์ด ===== */
+.tiles-row { height: 62px; }
+.tile.sp { flex-direction: column; gap: 2px; line-height: 1; font-size: .6rem; }
+.tile.sp.cur { outline: 3px solid #f1c40f; outline-offset: -3px; }
+.tile.done { opacity: .5; }
+.reqs { display: flex; gap: 1px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.chip { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; border-radius: 4px; color: #fff; font-size: .6rem; text-align: center; font-weight: 700; padding: 0 2px; }
+.chip.sm { min-width: 11px; height: 11px; line-height: 11px; font-size: .45rem; }
+.dv { font-size: .7rem; }
+.cov { font-size: .65rem; }
+.player-tabs { flex-wrap: wrap; }
+.tab { white-space: nowrap; }
+.action-zone { max-height: 200px; overflow: auto; }
+.action-zone button { margin: 1px 2px; padding: 2px 8px; border-radius: 6px; border: 1px solid #94a3b8; background: #e2e8f0; cursor: pointer; font-size: .72rem; }
+.pend { background: #fde68a; padding: 2px 6px; border-radius: 4px; }
+.preview-cards-container { flex-wrap: wrap; }
+.hcard { background: #2a3446; border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 8px; font-size: .72rem; }
