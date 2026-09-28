@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อย่าซ่ากับบอส! - I'm the Boss Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar ด้านบน -->
+    <nav class="top-navbar">
+        <div class="logo">
+            <span class="logo-red">SIAM</span> BOARD GAMES
+        </div>
+        <ul class="nav-links">
+            <li class="active">เกมของฉัน</li>
+            <li>สถิติ</li>
+            <li>ชุมชน</li>
+            <li>กติกาการเล่น</li>
+        </ul>
+        <div class="user-profile">
+            <span>⚙️ ตั้งค่าระบบ</span>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- ฝั่งซ้าย: โต๊ะนักธุรกิจ 6 คน + กระดานเกม -->
+        <main class="game-area">
+            <!-- แผงแสดงนักธุรกิจทั้ง 6 คนตามกติกาจริง -->
+            <div class="panel investors-section">
+                <h3>💼 นักธุรกิจทั้ง 6 คน (Investor Cards)</h3>
+                <div class="investor-grid">
+                    <div class="investor-card red" id="card-A">
+                        <div class="inv-avatar">👨‍💼</div>
+                        <div class="inv-name">Investor A (สีแดง)</div>
+                        <div class="inv-owner" id="owner-A">เจ้าของ: Player 1</div>
+                    </div>
+                    <div class="investor-card blue" id="card-B">
+                        <div class="inv-avatar">👩‍💼</div>
+                        <div class="inv-name">Investor B (สีฟ้า)</div>
+                        <div class="inv-owner" id="owner-B">เจ้าของ: Player 2</div>
+                    </div>
+                    <div class="investor-card green" id="card-C">
+                        <div class="inv-avatar">🧑‍💼</div>
+                        <div class="inv-name">Investor C (สีเขียว)</div>
+                        <div class="inv-owner my-card" id="owner-C">เจ้าของ: คุณ (Player 3)</div>
+                    </div>
+                    <div class="investor-card yellow" id="card-D">
+                        <div class="inv-avatar">👴</div>
+                        <div class="inv-name">Investor D (สีเหลือง)</div>
+                        <div class="inv-owner unowned" id="owner-D">กองกลาง (ไม่มีเจ้าของ)</div>
+                    </div>
+                    <div class="investor-card orange" id="card-E">
+                        <div class="inv-avatar">👩‍💻</div>
+                        <div class="inv-name">Investor E (สีส้ม)</div>
+                        <div class="inv-owner unowned" id="owner-E">กองกลาง (ไม่มีเจ้าของ)</div>
+                    </div>
+                    <div class="investor-card purple" id="card-F">
+                        <div class="inv-avatar">🧔</div>
+                        <div class="inv-name">Investor F (สีม่วง)</div>
+                        <div class="inv-owner unowned" id="owner-F">กองกลาง (ไม่มีเจ้าของ)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- พื้นที่กระดานจำลองดีล -->
+            <div class="board-display">
+                <div class="board-center">
+                    <div class="project-card">
+                        <div class="project-header">ดีลโครงการ #8</div>
+                        <div class="project-money">$6,000,000</div>
+                        <div class="project-req">นักธุรกิจที่ต้องใช้: 🔴 A | 🔵 B | 🟢 C</div>
+                    </div>
+                </div>
+                <div class="board-overlay-text">กระดานเจรจาธุรกิจออนไลน์</div>
+            </div>
+        </main>
+
+        <!-- ฝั่งขวา: ระบบเสียง + การ์ดจับมือ 3 ใบ -->
+        <aside class="sidebar">
+            <!-- ระบบเสียง Live Voice Chat -->
+            <div class="panel voice-panel">
+                <div class="panel-header">🎙️ Live Voice Chat</div>
+                <ul class="voice-list">
+                    <li><span>👨‍💼 Player 1</span> <span class="mic-icon on">🔊</span></li>
+                    <li><span>👩‍💼 Player 2</span> <span class="mic-icon on">🔊</span></li>
+                    <li><span>🧑‍💼 คุณ (Player 3)</span> <span id="myMicIcon" class="mic-icon off">🔇</span></li>
+                </ul>
+                <div class="mic-center">
+                    <button id="mainMicBtn" class="big-mic-btn off" onclick="toggleMicrophone()">🎙️</button>
+                </div>
+                <div id="micStatusText" class="mic-status">MICROPHONE MUTED</div>
+            </div>
+
+            <!-- ระบบใช้การ์ดว่าจ้าง / การ์ดจับมือ 3 ใบ -->
+            <div class="panel action-panel">
+                <div class="panel-header">🤝 การ์ดว่าจ้าง (Recruitment x3)</div>
+                <p class="rule-hint">ใช้การ์ดว่าจ้าง/จับมือครบ 3 ใบ เพื่อยึดนักธุรกิจของเพื่อน หรือดึงจากกองกลางที่ไม่มีเจ้าของมาเป็นของคุณ!</p>
+
+                <div class="cards-hand-slot">
+                    <div class="slot-card">🤝 ใบที่ 1</div>
+                    <div class="slot-card">🤝 ใบที่ 2</div>
+                    <div class="slot-card">🤝 ใบที่ 3</div>
+                </div>
+
+                <div class="buy-action-box">
+                    <label for="selectInvestor">เลือกนักธุรกิจที่ต้องการยึด:</label>
+                    <select id="selectInvestor">
+                        <option value="A">Investor A (ของ Player 1)</option>
+                        <option value="B">Investor B (ของ Player 2)</option>
+                        <option value="D">Investor D (กองกลาง - ไม่มีเจ้าของ)</option>
+                        <option value="E">Investor E (กองกลาง - ไม่มีเจ้าของ)</option>
+                        <option value="F">Investor F (กองกลาง - ไม่มีเจ้าของ)</option>
+                    </select>
+                    <button class="btn-buy-investor" onclick="useRecruitment3Cards()">ใช้การ์ด 3 ใบยึดนักธุรกิจ!</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
