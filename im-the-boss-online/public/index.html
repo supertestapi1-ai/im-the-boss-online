@@ -3,75 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIAM BOARD GAMES - I'm the Boss!</title>
+<title>I'm the Boss! Online</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="top-navbar">
-  <div class="nav-left"><div class="logo"><span class="logo-siam">SIAM</span><span class="logo-sub">BOARD GAMES</span></div>
-    <nav class="main-menu"><a href="#" class="active">เกมของฉัน</a><a href="#">สถิติ</a><a href="#">ชุมชน</a></nav></div>
-  <div class="nav-right"><span id="roomTag" class="room-tag"></span>
-    <div class="user-avatar"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Boss" alt="user"></div></div>
+  <div class="brand"><div class="brand-mark">B</div><div><div class="brand-title">I'M THE BOSS!</div><div class="brand-sub">ONLINE TABLE</div></div></div>
+  <div class="room-pill"><span>ROOM</span><b id="roomTag"></b></div>
 </header>
 
-<div id="lobby" class="lobby"><div class="side-card lobby-box">
-  <h1>I'm the BOSS!</h1><p class="sub">อย่าซ่ากับบอส</p>
-  <input id="name" placeholder="ชื่อของคุณ" maxlength="14">
-  <button class="btn-leave" id="btnCreate">สร้างห้อง</button>
-  <div class="row"><input id="code" placeholder="รหัสห้อง" maxlength="4"><button class="btn-setting" id="btnJoin">เข้าร่วม</button></div>
-  <p id="err" class="err"></p>
-  <div id="hostPanel" hidden class="host-panel">
-    <p class="sub small">ห้อง <b id="roomCode2"></b> · รอผู้เล่น <span id="pcount"></span></p>
-    <button class="btn-setting" id="btnStart">เริ่มเกม</button>
-    <details open><summary>⚙️ ตั้งค่ากระดานให้ตรงกล่องจริง</summary>
-      <p class="hint">ติ๊กสีนักลงทุนของแต่ละช่องให้ตรงกระดานจริงที่คุณมี แล้วกด "บันทึกค่ากระดาน" ก่อนกด "เริ่มเกม"</p>
-      <div id="tileEditor" class="tile-editor"></div>
-      <button class="btn-mute" id="btnAddTile" type="button">+ เพิ่มช่อง</button>
-      <label style="margin-top:10px">มูลค่าดีลใบที่ 1..N (ล้านบาทต่อ 1 ปันผล คั่นด้วยจุลภาค)</label>
-      <textarea id="cfgDeals" rows="2"></textarea>
-      <button class="btn-setting" id="btnSaveCfg">บันทึกค่ากระดาน</button>
-      <span id="cfgMsg" class="err"></span>
-      <details class="adv"><summary>ขั้นสูง: แก้เป็น JSON โดยตรง</summary>
-        <textarea id="cfgBoardJson" rows="6"></textarea>
-        <button class="btn-mute" id="btnLoadJson" type="button">โหลดตารางจาก JSON นี้</button>
+<div id="lobby" class="lobby">
+  <div class="lobby-card">
+    <div class="lobby-hero"><span class="crown">♛</span><h1>I'M THE BOSS!</h1><p>โต๊ะเจรจาออนไลน์แบบ Multiplayer</p></div>
+    <input id="name" placeholder="ชื่อของคุณ" maxlength="14">
+    <button class="primary-btn" id="btnCreate">สร้างห้องใหม่</button>
+    <div class="or"><span>หรือ</span></div>
+    <div class="join-row"><input id="code" placeholder="รหัสห้อง" maxlength="4"><button class="secondary-btn" id="btnJoin">เข้าร่วม</button></div>
+    <p id="err" class="err"></p>
+    <div id="hostPanel" hidden class="host-panel">
+      <div class="room-wait"><span>ห้อง <b id="roomCode2"></b></span><span>ผู้เล่น <b id="pcount"></b></span></div>
+      <button class="primary-btn" id="btnStart">เริ่มเกม</button>
+      <details><summary>⚙️ ตั้งค่ากระดาน</summary>
+        <p class="hint">ตั้งช่องเดินและมูลค่าดีลให้ตรงกับกระดานที่ใช้ก่อนเริ่มเกม</p>
+        <div id="tileEditor" class="tile-editor"></div>
+        <button class="small-btn" id="btnAddTile" type="button">+ เพิ่มช่อง</button>
+        <label class="cfg-label">มูลค่าดีล 1..N (ล้านบาท คั่นด้วยจุลภาค)</label>
+        <textarea id="cfgDeals" rows="2"></textarea>
+        <button class="secondary-btn" id="btnSaveCfg">บันทึกค่ากระดาน</button>
+        <span id="cfgMsg" class="err"></span>
+        <details class="adv"><summary>ขั้นสูง: JSON</summary><textarea id="cfgBoardJson" rows="6"></textarea><button class="small-btn" id="btnLoadJson" type="button">โหลด JSON</button></details>
       </details>
-    </details>
-  </div>
-</div></div>
-
-<div class="main-layout" id="game" hidden>
-  <aside class="left-toolbar"><div class="tool-item user-item">👤</div><div class="tool-item red-card">🃏</div>
-    <div class="tool-item icon-blue">$</div><div class="tool-item icon-yellow">$</div><div class="tool-item icon-green">👥</div></aside>
-
-  <main class="board-viewport"><div class="board-wrapper">
-    <div class="player-tabs" id="tabs"></div>
-    <div class="board-3d">
-      <div class="tiles-row" id="rowTop"></div>
-      <div class="board-middle-row">
-        <div class="side-col left-col" id="colL"></div>
-        <div class="central-floor"><div class="stock-bg-overlay">
-          <div class="boss-logo-banner"><h1>I'm the BOSS!</h1><p id="roundInfo">อย่าซ่ากับบอส</p></div>
-          <div class="deal-cards-area">
-            <div class="deck-box"><div class="deck-graphic">💼</div></div>
-            <div class="active-deal-card"><div class="deal-header" id="dealNo">#-</div><div class="deal-amount" id="dealAmt">-</div><div class="deal-stacks" id="dealSeats"></div></div>
-          </div>
-          <div id="actionZone" class="action-zone"></div>
-        </div></div>
-        <div class="side-col right-col" id="colR"></div>
-      </div>
-      <div class="tiles-row" id="rowBot"></div>
     </div>
-  </div></main>
+  </div>
+</div>
 
-  <aside class="right-sidebar">
-    <div class="side-card"><div class="side-card-header"><span>ห้อง <b id="roomCodeGame"></b></span></div>
-      <ul class="voice-users" id="plist"></ul></div>
-    <div class="side-card"><div class="side-card-header"><span>การ์ดอิทธิพลของคุณ</span></div>
-      <div class="hand-fan" id="hand"></div>
-      <div class="deck-count" id="handHint">เลือกการ์ด แล้วเลือกเป้าหมาย</div></div>
-    <div class="side-card chat-card"><div class="side-card-header"><span>บันทึก / แชท</span></div>
-      <div id="log" class="logbox"></div>
-      <div class="row"><input id="chatIn" placeholder="พิมพ์ข้อความต่อรอง..."><button class="btn-setting" id="btnChat">ส่ง</button></div></div>
+<div class="game-shell" id="game" hidden>
+  <main class="table-area">
+    <div class="turn-strip" id="tabs"></div>
+    <section class="board-frame">
+      <div class="board-edge">
+        <div class="tiles-row top-row" id="rowTop"></div>
+        <div class="board-middle-row">
+          <div class="side-col left-col" id="colL"></div>
+          <div class="central-floor">
+            <div class="felt-noise"></div>
+            <div class="center-head"><div class="boss-badge">♛</div><div><b>I'M THE BOSS!</b><small id="roundInfo">รอเริ่มเกม</small></div></div>
+            <div class="deal-display">
+              <div class="deal-deck"><div class="deck-card back-card">DEAL</div><span>กองดีล</span></div>
+              <div class="active-deal-card"><div class="deal-top"><span id="dealNo">#-</span><span>DEAL</span></div><div class="deal-amount" id="dealAmt">-</div><div class="deal-seats" id="dealSeats">ปันผล</div></div>
+              <div class="dice-panel" id="dicePanel"><div class="dice-label">ลูกเต๋า</div><div class="die" id="dieFace">?</div><div class="dice-caption" id="diceCaption">รอการทอย</div></div>
+            </div>
+            <div class="action-zone" id="actionZone"></div>
+          </div>
+          <div class="side-col right-col" id="colR"></div>
+        </div>
+        <div class="tiles-row bottom-row" id="rowBot"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="sidebar">
+    <section class="panel players-panel"><div class="panel-title"><span>ผู้เล่น</span><span class="room-mini" id="roomCodeGame"></span></div><ul id="plist"></ul></section>
+    <section class="panel hand-panel"><div class="panel-title"><span>การ์ดของคุณ</span><span class="hand-count" id="handHint"></span></div><div id="hand" class="hand-grid"></div></section>
+    <section class="panel chat-card"><div class="panel-title">บันทึก / แชท</div><div id="log" class="logbox"></div><div class="chat-row"><input id="chatIn" placeholder="พิมพ์ข้อความต่อรอง..."><button id="btnChat">ส่ง</button></div></section>
   </aside>
 </div>
 <script src="/socket.io/socket.io.js"></script>

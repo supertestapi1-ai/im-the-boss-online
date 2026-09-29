@@ -51,23 +51,71 @@ $('btnSaveCfg').onclick = () => {
 };
 const sendChat = () => { const v = $('chatIn').value.trim(); if (v) sock.emit('chat', v); $('chatIn').value = ''; };
 $('btnChat').onclick = sendChat; $('chatIn').onkeydown = e => e.key === 'Enter' && sendChat();
-sock.on('state', s => { S = s; render(); });
+sock.on('state', s => { const prev = S; S = s; render(); if (prev && s.die != null && s.die !== prev.die) { animateDie(s.die); animateMove(prev.pos, s.pos, s.die); } });
+
+let lastPos = null;
+let lastDie = null;
+let diceTimer = null;
 
 function drawBoard() {
   const T = idx => idx.map(i => {
     const b = S.board[i], ci = S.covered.indexOf(i);
     const wild = !b.req.length && b.from.length >= 5;
     let inner;
-    if (ci >= 0) inner = `<span class="cov">✔<br>#${ci + 1}</span>`;
-    else if (wild) inner = `<div class="hs">🤝</div><b class="dv">${b.n}·×${b.div}</b>`;
-    else inner = `<div class="reqs">${b.req.map(l => chip(l)).join('')}</div>${b.n ? `<div class="reqs sub">+${b.n} จาก ${b.from.map(l => chip(l, ' sm')).join('')}</div>` : ''}<b class="dv">×${b.div}</b>`;
-    return `<div class="tile sp${ci >= 0 ? ' done' : ''}${S.pos === i && S.phase === 'play' ? ' cur' : ''}${wild ? ' wild' : ''}">${inner}${S.pos === i && S.phase === 'play' ? '<span class="pawn">💲</span>' : ''}</div>`;
+    if (ci >= 0) inner = `<span class="cov">✓<br>ดีล #${ci + 1}</span>`;
+    else if (wild) inner = `<div class="hs">🤝</div><b class="dv">${b.n} · ×${b.div}</b>`;
+    else inner = `<span class="tile-index">${i + 1}</span><div class="reqs">${b.req.map(l => chip(l)).join('')}</div>${b.n ? `<div class="reqs sub">+${b.n} ${b.from.map(l => chip(l, ' sm')).join('')}</div>` : ''}<b class="dv">×${b.div}</b>`;
+    const active = S.pos === i && S.phase === 'play';
+    const pawn = active ? `<span class="pawn">♟<span class="pawn-label">เดินอยู่ที่นี่</span></span>` : '';
+    return `<div class="tile sp${ci >= 0 ? ' done' : ''}${active ? ' cur' : ''}${wild ? ' wild' : ''}" data-tile="${i}">${inner}${pawn}</div>`;
   }).join('');
   const n = S.board.length, q = Math.round(n / 4);
   const rng = (a, b) => Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => a <= b ? a + k : a - k);
-  $('rowTop').innerHTML = T(rng(0, q - 1)); $('colR').innerHTML = T(rng(q, 2 * q - 1));
-  $('rowBot').innerHTML = T(rng(3 * q - 1, 2 * q)); $('colL').innerHTML = T(rng(n - 1, 3 * q));
+  $('rowTop').innerHTML = T(rng(0, q - 1));
+  $('colR').innerHTML = T(rng(q, 2 * q - 1));
+  $('rowBot').innerHTML = T(rng(3 * q - 1, 2 * q));
+  $('colL').innerHTML = T(rng(n - 1, 3 * q));
 }
+
+function animateDie(value) {
+  if (!$('dieFace')) return;
+  const el = $('dieFace');
+  const cap = $('diceCaption');
+  clearInterval(diceTimer);
+  el.classList.remove('rolling', 'dice-hit');
+  void el.offsetWidth;
+  el.classList.add('rolling');
+  const faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+  let ticks = 0;
+  diceTimer = setInterval(() => {
+    el.textContent = faces[Math.floor(Math.random() * 6)];
+    ticks++;
+    if (ticks >= 6) {
+      clearInterval(diceTimer);
+      el.textContent = faces[Math.max(0, Math.min(5, value - 1))];
+      el.classList.remove('rolling');
+      el.classList.add('dice-hit');
+      cap.textContent = `ออก ${value} แต้ม · เดิน ${value} ช่อง`;
+    }
+  }, 90);
+}
+
+function animateMove(from, to, steps) {
+  if (from === null || from === undefined || from === to || !steps) return;
+  let cur = from;
+  let n = 0;
+  const covered = new Set(S.covered || []);
+  const tick = () => {
+    if (n >= steps) return;
+    do { cur = (cur + 1) % S.board.length; } while (covered.has(cur) && cur !== from);
+    const el = document.querySelector(`[data-tile="${cur}"]`);
+    if (el) { el.classList.remove('move-step'); void el.offsetWidth; el.classList.add('move-step'); }
+    n++;
+    if (cur !== to && n < steps) setTimeout(tick, 170);
+  };
+  tick();
+}
+
 const lab = c => c.t === 'clan' ? `Clan ${c.inv}` : c.t === 'travel' ? (c.inv === '*' ? 'Travel ทุกสี' : `Travel ${c.inv}`) : { recruit: 'Recruit 🤝', boss: 'Boss 👔', stop: 'STOP 🛑' }[c.t];
 const cardColor = c => c.t === 'clan' || c.t === 'travel' ? color(c.inv === '*' ? 'A' : c.inv) : { recruit: '#f39c12', boss: '#2f3542', stop: '#c0392b' }[c.t];
 
@@ -85,13 +133,13 @@ function render() {
   }
   $('lobby').hidden = true; $('game').hidden = false; $('roomTag').textContent = 'ห้อง ' + S.code; $('roomCodeGame').textContent = S.code;
   drawBoard();
-  $('tabs').innerHTML = S.players.map((p, i) => `<div class="tab" style="background:#334155;${play && i === S.turn ? 'outline:2px solid #f1c40f;' : ''}${p.gone ? 'opacity:.4' : ''}">${p.id === S.me ? '⭐' : ''}${esc(p.name)} ${p.inv.map(l => chip(l, ' sm')).join('')}${p.id === S.boss ? ' 👔' : ''}</div>`).join('');
+  $('tabs').innerHTML = S.players.map((p, i) => `<div class="tab${play && i === S.turn ? ' active' : ''}" style="${p.gone ? 'opacity:.4' : ''}">${p.id === S.me ? '⭐' : ''}${esc(p.name)} ${p.inv.map(l => chip(l, ' sm')).join('')}${p.id === S.boss ? ' 👔' : ''}</div>`).join('');
   $('plist').innerHTML = S.players.map(p => `<li><span class="u-name">${p.id === S.me ? '⭐' : '👤'} ${esc(p.name)} ${p.inv.map(l => chip(l, ' sm')).join('')}</span><span>🎴${p.cards}${p.money != null ? ' 💰' + fmt(p.money) : ''}</span></li>`).join('') + (S.center.length ? `<li><span>กลางโต๊ะ (ต้องดึงก่อน):</span><span>${S.center.map(l => chip(l, ' sm')).join('')}</span></li>` : '');
   $('log').innerHTML = [...S.log.map(l => `<div>${esc(l)}</div>`), ...S.chat.map(c => `<div><b>${esc(c.n)}:</b> ${esc(c.t)}</div>`)].join(''); $('log').scrollTop = 1e9;
   const g = {}; S.hand.forEach(c => { const k = lab(c); g[k] = g[k] || { n: 0, c }; g[k].n++; });
   $('hand').innerHTML = Object.entries(g).map(([k, v]) => `<div class="fcard" style="background:${cardColor(v.c)}">${k}<b>×${v.n}</b></div>`).join('') || '<i>ไม่มีการ์ด</i>';
   $('handHint').textContent = 'การ์ดที่ใช้ได้จะขึ้นปุ่มในโต๊ะเจรจา';
-  $('dealNo').textContent = '#' + Math.min(S.done + 1, S.deals ? S.deals.length : S.done + 1); $('dealAmt').textContent = fmt(S.val); $('dealSeats').textContent = '/ ปันผล';
+  $('dealNo').textContent = '#' + Math.min(S.done + 1, S.deals ? S.deals.length : S.done + 1); $('dealAmt').textContent = fmt(S.val); $('dealSeats').textContent = '× ปันผล'; if (S.die != null && lastDie === null) { $('dieFace').textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][S.die - 1]; $('diceCaption').textContent = `ล่าสุด ${S.die} แต้ม`; } lastDie = S.die;
   $('roundInfo').textContent = play ? `ดีลที่ ${S.done + 1} · ตา ${esc(S.players[S.turn].name)}` : (S.phase === 'end' ? 'จบเกม' : '');
   $('actionZone').innerHTML = zone(byId, me);
   document.querySelectorAll('[data-k]').forEach(e => { if (kept[e.dataset.k] !== undefined) e.value = kept[e.dataset.k]; });
@@ -101,7 +149,7 @@ function render() {
 function zone(byId, me) {
   if (S.phase === 'end') { const w = [...S.players].sort((a, b) => b.money - a.money); return `🏆 <b>${esc(w[0].name)}</b> ชนะ! ` + w.map(p => `${esc(p.name)} ${fmt(p.money)}`).join(' | '); }
   const has = f => S.hand.some(f), isAct = S.players[S.turn].id === S.me, act = S.players[S.turn];
-  if (S.step === 'a') return isAct ? 'ตาคุณ เลือก 1 อย่าง: <button data-do="deal">📣 ทำดีลที่ช่องนี้</button> <button data-do="roll">🎲 ทอยลูกเต๋าเดิน</button> <button data-do="draw">🃏 ไม่ทอย ขอจั่ว 3 ใบแทน</button>' : `รอ ${esc(act.name)} ตัดสินใจ...`;
+  if (S.step === 'a') return isAct ? 'ตาคุณ เลือก 1 อย่าง: <button class="primary-action" data-do="deal">📣 ทำดีลที่ช่องนี้</button> <button class="roll-action" data-do="roll">🎲 ทอยลูกเต๋าเดิน</button> <button data-do="draw">🃏 ไม่ทอย · จั่ว 3 ใบ</button>' : `รอ ${esc(act.name)} ตัดสินใจ...`;
   const sp = S.board[S.pos], boss = byId[S.boss], isBoss = S.boss === S.me;
   let h = `<div>👔 <b>${esc(boss.name)}</b> ต้องการ ${sp.req.map(l => chip(l)).join('') || '(ไม่ระบุสี)'}${sp.n ? ` + ${sp.n} จาก ${sp.from.map(l => chip(l, ' sm')).join('')}` : ''} · ×${sp.div} = <b>${fmt(sp.div * S.val)}</b></div>`;
   if (S.travel.length) h += `<div>✈️ กำลังเดินทาง: ${S.travel.map(l => chip(l, ' sm')).join('')}</div>`;
