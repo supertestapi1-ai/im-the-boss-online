@@ -60,9 +60,11 @@ function view(r, me) {
     hand: P(r, me)?.hand || [] };
 }
 const push = r => r.players.forEach(p => io.to(p.id).emit('state', view(r, p.id)));
-function draw(r, p, n) {
-  for (let i = 0; i < n; i++) { if (!r.deck.length) { r.deck = shuffle(r.disc); r.disc = []; } if (r.deck.length) p.hand.push(r.deck.pop()); }
-  while (p.hand.length > CFG.maxHand) { r.disc.push(p.hand.splice(Math.random() * p.hand.length | 0, 1)[0]); log(r, `🗑️ ${p.name} ทิ้งการ์ดที่เกิน ${CFG.maxHand} ใบ`); }
+function draw(r, p, n) { // ถือได้ไม่เกิน 12 ใบ: จั่วจนครบ 12 แล้วหยุด ไม่มีการสุ่มทิ้ง
+  for (let i = 0; i < n && p.hand.length < CFG.maxHand; i++) {
+    if (!r.deck.length) { r.deck = shuffle(r.disc); r.disc = []; if (!r.deck.length) break; } // เด็คจั่วหมด: สับกองทิ้งของทุกคนกลับมาเป็นเด็คใหม่
+    p.hand.push(r.deck.pop());
+  }
 }
 const take = (p, pred) => { const i = p.hand.findIndex(pred); return i < 0 ? null : p.hand.splice(i, 1)[0]; };
 function clearNeg(r, used = []) { // คืน Clan ที่ไม่ได้ใช้ให้เจ้าของ ที่เหลือลงกองทิ้ง
@@ -128,12 +130,12 @@ io.on('connection', sock => {
     log(r, `▶️ เริ่มเกม ${P(r, r.players[r.turn].id).name} เล่นก่อน (กระดาน: ${r.customBoard ? 'กำหนดเอง' : 'ค่าเริ่มต้นโดยประมาณ'})`); push(r); ok(cb);
   });
 
-  sock.on('act', (a, cb) => {
-    const r = room; if (!r || r.phase !== 'play' || r.players[r.turn].id !== sock.id) return;
+  sock.on('act', (a, cb) => { // ต้นตา เลือกได้ 1 อย่าง: ทำดีลที่ช่องนี้ / ทอยเต๋าเดิน (จบตา) / ไม่ทอย จั่ว 3 ใบแทน (จบตา)
+    const r = room; if (!r || r.phase !== 'play' || r.players[r.turn].id !== sock.id || r.step !== 'a') return;
     const me = P(r, sock.id);
-    if (a === 'roll' && r.step === 'a') { r.die = die(); r.pos = nextFree(r, r.pos, r.die); r.step = 'b'; log(r, `🎲 ${me.name} ทอยได้ ${r.die}`); }
-    else if (a === 'deal' && (r.step === 'a' || r.step === 'b')) { r.step = 'neg'; r.boss = sock.id; r.offers = {}; r.clans = {}; r.travel = []; log(r, `📣 ${me.name}: Let's make a deal! (ช่อง ${r.pos + 1})`); }
-    else if (a === 'draw' && r.step === 'b') { draw(r, me, CFG.drawN); log(r, `🃏 ${me.name} จั่วการ์ด ${CFG.drawN} ใบ`); endTurn(r, sock.id); }
+    if (a === 'deal') { r.step = 'neg'; r.boss = sock.id; r.offers = {}; r.clans = {}; r.travel = []; log(r, `📣 ${me.name}: Let's make a deal! (ช่อง ${r.pos + 1})`); }
+    else if (a === 'roll') { r.die = die(); r.pos = nextFree(r, r.pos, r.die); log(r, `🎲 ${me.name} ทอยได้ ${r.die} เดินไปช่องใหม่`); endTurn(r, sock.id); }
+    else if (a === 'draw') { draw(r, me, CFG.drawN); log(r, `🃏 ${me.name} ไม่ทอยเต๋า ขอจั่วการ์ด ${CFG.drawN} ใบแทน`); endTurn(r, sock.id); }
     else return ok(cb, 'ทำไม่ได้ตอนนี้');
     push(r); ok(cb);
   });

@@ -468,3 +468,15 @@ input { font-family: 'Kanit', sans-serif; }
 .fcard b { font-size: .85rem; margin-top: 2px; }
 
 @media (max-width: 900px) { .main-layout { flex-direction: column; overflow: auto; } .left-toolbar { display: none; } .right-sidebar { width: 100%; } .board-viewport { min-height: 460px; } body { overflow: auto; height: auto; } }
+
+/* ===== ตัวแก้ไขช่องกระดานแบบตาราง (host) ===== */
+.tile-editor { max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.tedit-row { background: #1c2230; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 8px; font-size: .68rem; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tedit-row b { width: 100%; color: #f1c40f; font-size: .72rem; }
+.tedit-grp { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.tedit-grp span { color: var(--text-muted); }
+.ckl { display: inline-flex; align-items: center; gap: 2px; padding: 1px 5px; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid var(--c); }
+.ckl input { margin: 0; accent-color: var(--c); }
+.tn { width: 48px; padding: 2px 4px; }
+.adv { margin-top: 10px; }
+.adv textarea { font-size: .62rem; }

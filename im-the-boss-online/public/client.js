@@ -15,15 +15,39 @@ $('btnCreate').onclick = () => sock.emit('create', $('name').value, r => {
 });
 $('btnJoin').onclick = () => sock.emit('join', $('code').value, $('name').value, r => r.error && ($('err').textContent = r.error));
 $('btnStart').onclick = () => sock.emit('start', em);
+const LN = { A: 'แดง', B: 'ส้ม', C: 'เหลือง', D: 'เขียว', E: 'น้ำเงิน', F: 'ม่วง' };
+let tiles = [];
+function tileRowHtml(t, i) {
+  const box = (grp, l) => `<label class="ckl" style="--c:${color(l)}"><input type="checkbox" data-r="${i}" data-g="${grp}" data-l="${l}" ${t[grp].includes(l) ? 'checked' : ''}>${LN[l]}</label>`;
+  return `<div class="tedit-row"><b>ช่อง ${i + 1}</b>
+    <div class="tedit-grp"><span>ต้องมีครบ:</span>${IN.map(l => box('req', l)).join('')}</div>
+    <div class="tedit-grp"><span>เลือกเพิ่มจาก:</span>${IN.map(l => box('from', l)).join('')} <span>จำนวน:</span><input type="number" min="0" max="6" class="amt tn" data-n="${i}" value="${t.n}"></div>
+    <div class="tedit-grp"><span>ปันผล ×</span><input type="number" min="1" class="amt tn" data-div="${i}" value="${t.div}"></div>
+    <button type="button" class="btn-mute" data-del="${i}">ลบช่อง</button></div>`;
+}
+function renderTiles() { $('tileEditor').innerHTML = tiles.map(tileRowHtml).join(''); }
+$('tileEditor').onchange = e => {
+  const d = e.target.dataset;
+  if (d.r !== undefined) { const t = tiles[+d.r], arr = t[d.g]; const i2 = arr.indexOf(d.l); if (e.target.checked && i2 < 0) arr.push(d.l); if (!e.target.checked && i2 >= 0) arr.splice(i2, 1); }
+  else if (d.n !== undefined) tiles[+d.n].n = Math.max(0, +e.target.value || 0);
+  else if (d.div !== undefined) tiles[+d.div].div = Math.max(1, +e.target.value || 1);
+};
+$('tileEditor').onclick = e => { const d = e.target.dataset; if (d.del !== undefined) { tiles.splice(+d.del, 1); renderTiles(); } };
+$('btnAddTile').onclick = () => { tiles.push({ req: [], n: 2, from: [...IN], div: 2 }); renderTiles(); };
+$('btnLoadJson').onclick = () => {
+  try { tiles = JSON.parse($('cfgBoardJson').value).map(t => ({ req: t.req || [], n: t.n || 0, from: t.from || [], div: t.div || 1 })); renderTiles(); $('cfgMsg').textContent = ''; }
+  catch { $('cfgMsg').textContent = 'JSON ไม่ถูกต้อง'; }
+};
 fetch('/default-config').then(r => r.json()).then(cfg => {
-  $('cfgBoard').value = JSON.stringify(cfg.board, null, 1);
+  tiles = cfg.board.map(t => ({ req: t.req, n: t.n, from: t.from, div: (t.req.length + t.n) })); renderTiles();
+  $('cfgBoardJson').value = JSON.stringify(cfg.board, null, 1);
   $('cfgDeals').value = cfg.deals.join(', ');
 }).catch(() => {});
 $('btnSaveCfg').onclick = () => {
-  let board, deals;
-  try { board = JSON.parse($('cfgBoard').value); } catch { return $('cfgMsg').textContent = 'JSON ของกระดานไม่ถูกต้อง'; }
-  deals = $('cfgDeals').value.split(',').map(s => +s.trim()).filter(n => n > 0);
-  sock.emit('setBoard', { board, deals }, r => $('cfgMsg').textContent = r.error || '✅ บันทึกแล้ว');
+  if (!tiles.length) return $('cfgMsg').textContent = 'ต้องมีอย่างน้อย 1 ช่อง';
+  for (const t of tiles) if (!t.req.length && !t.n) return $('cfgMsg').textContent = 'แต่ละช่องต้องมีสีที่ต้องใช้อย่างน้อย 1 อย่าง';
+  const deals = $('cfgDeals').value.split(',').map(s => +s.trim()).filter(n => n > 0);
+  sock.emit('setBoard', { board: tiles, deals }, r => { $('cfgMsg').textContent = r.error || '✅ บันทึกแล้ว'; if (!r.error) $('cfgBoardJson').value = JSON.stringify(tiles, null, 1); });
 };
 const sendChat = () => { const v = $('chatIn').value.trim(); if (v) sock.emit('chat', v); $('chatIn').value = ''; };
 $('btnChat').onclick = sendChat; $('chatIn').onkeydown = e => e.key === 'Enter' && sendChat();
@@ -77,8 +101,7 @@ function render() {
 function zone(byId, me) {
   if (S.phase === 'end') { const w = [...S.players].sort((a, b) => b.money - a.money); return `🏆 <b>${esc(w[0].name)}</b> ชนะ! ` + w.map(p => `${esc(p.name)} ${fmt(p.money)}`).join(' | '); }
   const has = f => S.hand.some(f), isAct = S.players[S.turn].id === S.me, act = S.players[S.turn];
-  if (S.step === 'a') return isAct ? 'ตาคุณ: <button data-do="deal">📣 ทำดีลที่ช่องนี้</button> <button data-do="roll">🎲 ทอยลูกเต๋าเลื่อนมาร์คเกอร์</button>' : `รอ ${esc(act.name)} ตัดสินใจ...`;
-  if (S.step === 'b') return isAct ? `ทอยได้ ${S.die}: <button data-do="deal">📣 ทำดีลช่องนี้</button> <button data-do="draw">🃏 จั่ว 3 ใบ</button>` : `${esc(act.name)} ทอยได้ ${S.die} กำลังเลือก...`;
+  if (S.step === 'a') return isAct ? 'ตาคุณ เลือก 1 อย่าง: <button data-do="deal">📣 ทำดีลที่ช่องนี้</button> <button data-do="roll">🎲 ทอยลูกเต๋าเดิน</button> <button data-do="draw">🃏 ไม่ทอย ขอจั่ว 3 ใบแทน</button>' : `รอ ${esc(act.name)} ตัดสินใจ...`;
   const sp = S.board[S.pos], boss = byId[S.boss], isBoss = S.boss === S.me;
   let h = `<div>👔 <b>${esc(boss.name)}</b> ต้องการ ${sp.req.map(l => chip(l)).join('') || '(ไม่ระบุสี)'}${sp.n ? ` + ${sp.n} จาก ${sp.from.map(l => chip(l, ' sm')).join('')}` : ''} · ×${sp.div} = <b>${fmt(sp.div * S.val)}</b></div>`;
   if (S.travel.length) h += `<div>✈️ กำลังเดินทาง: ${S.travel.map(l => chip(l, ' sm')).join('')}</div>`;

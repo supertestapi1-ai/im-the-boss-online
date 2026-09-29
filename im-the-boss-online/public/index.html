@@ -23,14 +23,18 @@
   <div id="hostPanel" hidden class="host-panel">
     <p class="sub small">ห้อง <b id="roomCode2"></b> · รอผู้เล่น <span id="pcount"></span></p>
     <button class="btn-setting" id="btnStart">เริ่มเกม</button>
-    <details><summary>⚙️ ตั้งค่ากระดานให้ตรงกล่องจริง (ขั้นสูง)</summary>
-      <p class="hint">แก้ตัวเลขให้ตรงกับกระดานที่คุณมี แล้วกดบันทึก ก่อนกด "เริ่มเกม" — ปล่อยว่างไว้ = ใช้ค่าประมาณการ</p>
-      <label>ข้อมูลช่องบนกระดาน (JSON array: req=สีที่ต้องมีครบ, n=จำนวนเลือกเพิ่ม, from=เลือกจากสีไหนได้บ้าง, div=จำนวนปันผล)</label>
-      <textarea id="cfgBoard" rows="6"></textarea>
-      <label>มูลค่าดีลใบที่ 1..N (ล้านบาทต่อปันผล คั่นด้วยจุลภาค)</label>
+    <details open><summary>⚙️ ตั้งค่ากระดานให้ตรงกล่องจริง</summary>
+      <p class="hint">ติ๊กสีนักลงทุนของแต่ละช่องให้ตรงกระดานจริงที่คุณมี แล้วกด "บันทึกค่ากระดาน" ก่อนกด "เริ่มเกม"</p>
+      <div id="tileEditor" class="tile-editor"></div>
+      <button class="btn-mute" id="btnAddTile" type="button">+ เพิ่มช่อง</button>
+      <label style="margin-top:10px">มูลค่าดีลใบที่ 1..N (ล้านบาทต่อ 1 ปันผล คั่นด้วยจุลภาค)</label>
       <textarea id="cfgDeals" rows="2"></textarea>
       <button class="btn-setting" id="btnSaveCfg">บันทึกค่ากระดาน</button>
       <span id="cfgMsg" class="err"></span>
+      <details class="adv"><summary>ขั้นสูง: แก้เป็น JSON โดยตรง</summary>
+        <textarea id="cfgBoardJson" rows="6"></textarea>
+        <button class="btn-mute" id="btnLoadJson" type="button">โหลดตารางจาก JSON นี้</button>
+      </details>
     </details>
   </div>
 </div></div>
