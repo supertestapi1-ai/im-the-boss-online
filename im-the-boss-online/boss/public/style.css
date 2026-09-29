@@ -419,3 +419,52 @@ input { background: #2a3446; border: 1px solid var(--border-color); color: #fff;
 .pend { background: #fde68a; padding: 2px 6px; border-radius: 4px; }
 .preview-cards-container { flex-wrap: wrap; }
 .hcard { background: #2a3446; border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 8px; font-size: .72rem; }
+
+/* ===== ปรับให้ใกล้เคียงรูปกล่องเกมจริง ===== */
+.room-tag { color: var(--text-muted); font-size: 0.8rem; }
+.lobby { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; }
+.lobby-box { width: 360px; display: flex; flex-direction: column; gap: 10px; text-align: center; max-height: 90vh; overflow: auto; }
+.lobby-box h1 { color: #f1c40f; }
+.lobby-box .sub { color: var(--text-muted); font-size: .8rem; }
+.lobby-box .sub.small { font-size: .72rem; }
+input, textarea { background: #2a3446; border: 1px solid var(--border-color); color: #fff; padding: 7px 10px; border-radius: 8px; font-size: .8rem; min-width: 0; font-family: monospace; }
+input { font-family: 'Kanit', sans-serif; }
+.row { display: flex; gap: 6px; } .row input { flex: 1; }
+.err { color: #ef4444; font-size: .75rem; min-height: 1em; }
+[hidden] { display: none !important; }
+.host-panel { text-align: left; border-top: 1px solid var(--border-color); padding-top: 10px; }
+.host-panel details { margin-top: 8px; font-size: .75rem; color: var(--text-muted); }
+.host-panel summary { cursor: pointer; color: #cbd5e1; }
+.host-panel textarea { width: 100%; font-size: .65rem; margin: 4px 0; }
+.host-panel .hint { font-size: .68rem; margin: 4px 0; }
+.host-panel label { display: block; margin-top: 6px; }
+
+.tiles-row { height: 68px; } .tiles-row .tile { flex-direction: column; }
+.tile.sp { gap: 1px; line-height: 1; font-size: .58rem; position: relative; }
+.tile.sp.cur { outline: 3px solid #f1c40f; outline-offset: -3px; z-index: 2; }
+.tile.done { opacity: .5; }
+.tile.wild { background: #2ecc71; color: #fff; }
+.tile.wild .hs { font-size: 1.2rem; }
+.reqs { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.reqs.sub { margin-top: 1px; }
+.chip { display: inline-block; width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(255,255,255,.6); }
+.chip.sm { width: 9px; height: 9px; }
+.dv { font-size: .62rem; margin-top: 1px; }
+.cov { font-size: .6rem; text-align: center; }
+.player-tabs { flex-wrap: wrap; }
+.tab { white-space: nowrap; display: flex; align-items: center; gap: 3px; }
+.action-zone { max-height: 220px; overflow: auto; }
+.action-zone button { margin: 1px 2px; padding: 3px 9px; border-radius: 6px; border: 1px solid #94a3b8; background: #e2e8f0; cursor: pointer; font-size: .72rem; }
+.action-zone select { font-size: .68rem; }
+.pend { background: #fde68a; padding: 2px 6px; border-radius: 4px; }
+.logbox { height: 150px; overflow: auto; font-size: .72rem; line-height: 1.5; margin-bottom: 8px; color: #cbd5e1; }
+.right-sidebar { overflow: auto; }
+
+/* การ์ดในมือ แบบพัด คล้ายภาพกล่องเกม */
+.hand-fan { display: flex; padding: 6px 0 2px 14px; min-height: 60px; }
+.fcard { width: 62px; min-height: 54px; margin-left: -20px; border-radius: 8px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: .6rem; font-weight: 700; text-align: center; padding: 4px; transition: transform .15s; }
+.fcard:hover { transform: translateY(-8px); z-index: 5; }
+.fcard b { font-size: .85rem; margin-top: 2px; }
+
+@media (max-width: 900px) { .main-layout { flex-direction: column; overflow: auto; } .left-toolbar { display: none; } .right-sidebar { width: 100%; } .board-viewport { min-height: 460px; } body { overflow: auto; height: auto; } }

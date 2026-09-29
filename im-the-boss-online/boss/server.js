@@ -3,16 +3,28 @@ const { Server } = require('socket.io');
 const app = express(), srv = http.createServer(app), io = new Server(srv);
 const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/default-config', (_, res) => res.json({ board: DEF_BOARD_RAW.map(([r, n, f]) => ({ req: [...r], n, from: [...f] })), deals: DEALS_DEFAULT.map(v => v / 1e6) }));
 
 // ===== ข้อมูลกติกา (แก้ตรงนี้ให้ตรงกระดานจริงได้) =====
 const CFG = { minP: 3, maxP: 6, startHand: 5, maxHand: 12, drawN: 3, stopMs: 6000 };
 const INV = [...'ABCDEF'];
-const DIV = { 2: 2, 3: 3, 4: 4, 5: 6 };               // จำนวนนักลงทุนที่ต้องใช้ -> จำนวนปันผล (ประมาณการ)
-// [ต้องมีทุกคน, จำนวนที่ต้องเลือกเพิ่ม, เลือกจากกลุ่มนี้]  16 ช่องรอบกระดาน (ประมาณการ)
-const BOARD = [['AB', 0, ''], ['C', 1, 'DEF'], ['DE', 0, ''], ['A', 2, 'BCF'], ['FBC', 0, ''], ['E', 1, 'ABD'], ['ACD', 1, 'BEF'], ['BF', 0, ''],
-  ['D', 2, 'ACE'], ['BEF', 0, ''], ['CD', 2, 'ABEF'], ['AE', 1, 'CDF'], ['ABCD', 1, 'EF'], ['F', 2, 'ABE'], ['CE', 0, ''], ['ADF', 2, 'BCE']]
-  .map(([r, n, f]) => ({ req: [...r], n, from: [...f], div: DIV[r.length + n] }));
-const DEALS = [2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5].map(v => v * 1e6);   // มูลค่าต่อ 1 ปันผล (ใบที่ 1-15)
+const DIV = { 2: 2, 3: 3, 4: 4, 5: 6, 6: 8 };          // จำนวนนักลงทุนที่ต้องใช้ -> จำนวนปันผล (ค่าเริ่มต้น ปรับได้จากห้อง)
+// [ต้องมีครบทุกสี, จำนวนที่ต้องเลือกเพิ่ม, เลือกจากกลุ่มสีนี้]  ค่าเริ่มต้น 16 ช่อง — host แก้เป็นค่าจริงจากกล่องได้ก่อนเริ่มเกม (ดู "ตั้งค่ากระดาน")
+const DEF_BOARD_RAW = [['AB', 0, ''], ['', 2, 'CDEF'], ['DE', 0, ''], ['A', 2, 'BCF'], ['', 2, 'ABCDEF'], ['E', 1, 'ABD'], ['ACD', 1, 'BEF'], ['', 2, 'ABCDEF'],
+  ['D', 2, 'ACE'], ['BEF', 0, ''], ['CD', 2, 'ABEF'], ['AE', 1, 'CDF'], ['ABCD', 1, 'EF'], ['', 2, 'ABCDEF'], ['CE', 0, ''], ['ADF', 2, 'BCE']];
+const mkBoard = raw => raw.map(([r, n, f]) => ({ req: [...r], n, from: [...f], div: DIV[r.length + n] || (r.length + n) }));
+const BOARD_DEFAULT = mkBoard(DEF_BOARD_RAW);
+const DEALS_DEFAULT = [2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5].map(v => v * 1e6);   // มูลค่าต่อ 1 ปันผล (ใบที่ 1-15) — ปรับได้จากห้องเช่นกัน
+function validBoard(raw) { // ตรวจ config ที่ host ส่งมา ก่อนใช้แทนค่า default
+  if (!Array.isArray(raw) || raw.length < 2 || raw.length > 40) return null;
+  try { const b = raw.map(t => {
+    const req = [...new Set((t.req || []).filter(c => INV.includes(c)))], from = [...new Set((t.from || []).filter(c => INV.includes(c)))];
+    const n = Math.max(0, Math.min(6, Math.floor(+t.n) || 0)), div = Math.max(1, Math.floor(+t.div) || (req.length + n));
+    if (!req.length && !n) return null; if (n > from.length) return null; return { req, n, from, div };
+  }); return b.every(Boolean) ? b : null; } catch { return null; }
+}
+function validDeals(raw) { if (!Array.isArray(raw) || raw.length < 1 || raw.length > 30) return null;
+  const d = raw.map(v => Math.max(1, Math.floor(+v) || 0) * 1e6); return d.every(v => v > 0) ? d : null; }
 const ENDS = { 10: [1], 11: [1, 2], 12: [1, 2, 3], 13: [1, 2, 3, 4], 14: [1, 2, 3, 4, 5] }; // เลขบนหลังใบดีล -> ทอยเจอ = จบเกม (ประมาณการ)
 
 const rooms = {};
@@ -41,8 +53,8 @@ function reps(r) { // ตัวแทนนักลงทุนที่พร�
 }
 function view(r, me) {
   const end = r.phase === 'end';
-  return { code: r.code, phase: r.phase, host: r.host, me, board: BOARD, pos: r.pos, covered: r.covered, done: r.done, val: DEALS[Math.min(r.done, 14)],
-    turn: r.turn, step: r.step, die: r.die, boss: r.boss, travel: r.travel, center: r.center, reps: r.step === 'neg' ? reps(r) : [],
+  return { code: r.code, phase: r.phase, host: r.host, me, board: r.board, pos: r.pos, covered: r.covered, done: r.done, val: r.deals[Math.min(r.done, r.deals.length - 1)],
+    turn: r.turn, step: r.step, die: r.die, boss: r.boss, travel: r.travel, center: r.center, reps: r.step === 'neg' ? reps(r) : [], customBoard: r.customBoard,
     pending: r.pending && { type: r.pending.type, by: r.pending.by, data: r.pending.data }, log: r.log.slice(-10), chat: r.chat.slice(-30),
     players: r.players.map(p => ({ id: p.id, name: p.name, inv: p.inv, cards: p.hand.length, money: end || p.id === me ? p.money : null, gone: p.gone })),
     hand: P(r, me)?.hand || [] };
@@ -62,7 +74,7 @@ function endTurn(r, from) { // ผู้เล่นซ้ายมือขอ�
   do { i = (i + 1) % r.players.length; } while (r.players[i].gone);
   r.turn = i; r.step = 'a';
 }
-const nextFree = (r, i, k = 1) => { for (let s = 0; s < k; s++) { do { i = (i + 1) % BOARD.length; } while (r.covered.includes(i)); } return i; };
+const nextFree = (r, i, k = 1) => { for (let s = 0; s < k; s++) { do { i = (i + 1) % r.board.length; } while (r.covered.includes(i)); } return i; };
 function resolve(r) {
   const p = r.pending; if (!p || r.step !== 'neg') return;
   const d = p.data;
@@ -78,8 +90,8 @@ function resolve(r) {
 }
 function finish(r, boss) { // หลังปิดดีลสำเร็จ
   r.covered.push(r.pos); r.done++;
-  let over = r.done >= 15;
-  if (!over && r.done >= 10) { const d = die(); log(r, `🎲 ทอยเช็คจบเกมได้ ${d}`); over = ENDS[r.done].includes(d); }
+  let over = r.done >= r.board.length;
+  if (!over && r.done >= Math.max(1, r.board.length - 6)) { const d = die(); log(r, `🎲 ทอยเช็คจบเกมได้ ${d}`); over = (ENDS[r.done] || [1]).includes(d); }
   if (over) { r.phase = 'end'; log(r, '🏁 จบเกม!'); return; }
   r.pos = nextFree(r, r.pos); endTurn(r, boss);
 }
@@ -90,7 +102,7 @@ io.on('connection', sock => {
   const inNeg = () => room && room.phase === 'play' && room.step === 'neg';
   const join = (code, name, cb, create) => {
     let r = create ? null : rooms[code];
-    if (create) { code = Math.random().toString(36).slice(2, 6).toUpperCase(); r = rooms[code] = { code, host: sock.id, players: [], phase: 'lobby', log: [], chat: [], offers: {}, clans: {}, travel: [], covered: [], center: [], deck: [], disc: [], done: 0, pos: 0, turn: 0, step: 'a', boss: null, pending: null }; }
+    if (create) { code = Math.random().toString(36).slice(2, 6).toUpperCase(); r = rooms[code] = { code, host: sock.id, players: [], phase: 'lobby', log: [], chat: [], offers: {}, clans: {}, travel: [], covered: [], center: [], deck: [], disc: [], done: 0, pos: 0, turn: 0, step: 'a', boss: null, pending: null, board: BOARD_DEFAULT, deals: DEALS_DEFAULT, customBoard: false }; }
     if (!r) return ok(cb, 'ไม่พบห้อง'); if (r.phase !== 'lobby') return ok(cb, 'เกมเริ่มไปแล้ว'); if (r.players.length >= CFG.maxP) return ok(cb, 'ห้องเต็ม');
     r.players.push({ id: sock.id, name: (name || 'Player ' + (r.players.length + 1)).slice(0, 14), inv: [], hand: [], money: 0 });
     room = r; sock.join(code); log(r, `👋 ${P(r, sock.id).name} เข้าห้อง`); push(r); ok(cb);
@@ -98,14 +110,22 @@ io.on('connection', sock => {
   sock.on('create', (n, cb) => join(null, n, cb, true));
   sock.on('join', (c, n, cb) => join(String(c || '').toUpperCase(), n, cb));
 
+  sock.on('setBoard', (cfg, cb) => { // host ปรับข้อมูลกระดาน/มูลค่าดีลให้ตรงกล่องจริงก่อนเริ่ม
+    const r = room; if (!r || r.host !== sock.id || r.phase !== 'lobby') return;
+    const b = cfg && cfg.board ? validBoard(cfg.board) : null, d = cfg && cfg.deals ? validDeals(cfg.deals) : null;
+    if (cfg && cfg.board && !b) return ok(cb, 'รูปแบบข้อมูลกระดานไม่ถูกต้อง'); if (cfg && cfg.deals && !d) return ok(cb, 'รูปแบบมูลค่าดีลไม่ถูกต้อง');
+    if (b) { r.board = b; r.customBoard = true; } if (d) r.deals = d;
+    if (!b && !d) { r.board = BOARD_DEFAULT; r.deals = DEALS_DEFAULT; r.customBoard = false; }
+    log(r, '🛠️ ตั้งค่ากระดานอัปเดตแล้ว'); push(r); ok(cb);
+  });
   sock.on('start', cb => {
     const r = room; if (!r || r.host !== sock.id || r.phase !== 'lobby') return;
     if (r.players.length < CFG.minP) return ok(cb, `ต้องมีอย่างน้อย ${CFG.minP} คน`);
     const inv = shuffle([...INV]), n = r.players.length, per = n === 3 ? 2 : 1;
     r.players.forEach(p => p.inv = inv.splice(0, per)); r.center = inv;   // 4-5 คน: ที่เหลือวางกลางโต๊ะ (ต้องดึงก่อน)
     r.deck = mkDeck(); r.players.forEach(p => draw(r, p, CFG.startHand));
-    r.pos = Math.random() * BOARD.length | 0; r.turn = Math.random() * n | 0; r.phase = 'play'; r.step = 'a';
-    log(r, `▶️ เริ่มเกม ${P(r, r.players[r.turn].id).name} เล่นก่อน`); push(r); ok(cb);
+    r.pos = Math.random() * r.board.length | 0; r.turn = Math.random() * n | 0; r.phase = 'play'; r.step = 'a';
+    log(r, `▶️ เริ่มเกม ${P(r, r.players[r.turn].id).name} เล่นก่อน (กระดาน: ${r.customBoard ? 'กำหนดเอง' : 'ค่าเริ่มต้นโดยประมาณ'})`); push(r); ok(cb);
   });
 
   sock.on('act', (a, cb) => {
@@ -161,13 +181,13 @@ io.on('connection', sock => {
 
   sock.on('close', (sel, cb) => {
     if (!inNeg()) return; const r = room; if (r.boss !== sock.id) return; if (r.pending) return ok(cb, 'มีการ์ดรอ Stop อยู่ รอสักครู่');
-    const sp = BOARD[r.pos], rp = reps(r), used = []; let cnt = 0;
+    const sp = r.board[r.pos], rp = reps(r), used = []; let cnt = 0;
     for (const [inv, key] of Object.entries(sel || {})) {
       const rep = rp.find(x => x.key === key && x.inv === inv); if (!rep) return ok(cb, 'ตัวแทนไม่ถูกต้อง');
       if (!sp.req.includes(inv) && !sp.from.includes(inv)) continue; used.push(rep); if (!sp.req.includes(inv)) cnt++;
     }
     if (!sp.req.every(i => used.some(u => u.inv === i)) || cnt < sp.n) return ok(cb, 'ยังได้นักลงทุนไม่ครบตามที่ช่องนี้ต้องการ');
-    const boss = P(r, r.boss), payout = sp.div * DEALS[r.done], cost = used.reduce((s, u) => s + u.ask, 0);
+    const boss = P(r, r.boss), payout = sp.div * r.deals[Math.min(r.done, r.deals.length - 1)], cost = used.reduce((s, u) => s + u.ask, 0);
     if (cost > boss.money + payout) return ok(cb, 'เงินไม่พอจ่ายตามข้อตกลง');
     boss.money += payout; for (const u of used) if (u.ask) { boss.money -= u.ask; P(r, u.owner).money += u.ask; }
     log(r, `💰 ปิดดีล #${r.done + 1}! บอส ${boss.name} ได้ ${payout.toLocaleString()} จ่ายให้คนอื่น ${cost.toLocaleString()}`);

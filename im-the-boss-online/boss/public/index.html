@@ -15,11 +15,24 @@
 </header>
 
 <div id="lobby" class="lobby"><div class="side-card lobby-box">
-  <h1>I'm the BOSS!</h1><p class="sub">อย่ายอมให้บอสสั่ง</p>
+  <h1>I'm the BOSS!</h1><p class="sub">อย่าซ่ากับบอส</p>
   <input id="name" placeholder="ชื่อของคุณ" maxlength="14">
   <button class="btn-leave" id="btnCreate">สร้างห้อง</button>
   <div class="row"><input id="code" placeholder="รหัสห้อง" maxlength="4"><button class="btn-setting" id="btnJoin">เข้าร่วม</button></div>
   <p id="err" class="err"></p>
+  <div id="hostPanel" hidden class="host-panel">
+    <p class="sub small">ห้อง <b id="roomCode2"></b> · รอผู้เล่น <span id="pcount"></span></p>
+    <button class="btn-setting" id="btnStart">เริ่มเกม</button>
+    <details><summary>⚙️ ตั้งค่ากระดานให้ตรงกล่องจริง (ขั้นสูง)</summary>
+      <p class="hint">แก้ตัวเลขให้ตรงกับกระดานที่คุณมี แล้วกดบันทึก ก่อนกด "เริ่มเกม" — ปล่อยว่างไว้ = ใช้ค่าประมาณการ</p>
+      <label>ข้อมูลช่องบนกระดาน (JSON array: req=สีที่ต้องมีครบ, n=จำนวนเลือกเพิ่ม, from=เลือกจากสีไหนได้บ้าง, div=จำนวนปันผล)</label>
+      <textarea id="cfgBoard" rows="6"></textarea>
+      <label>มูลค่าดีลใบที่ 1..N (ล้านบาทต่อปันผล คั่นด้วยจุลภาค)</label>
+      <textarea id="cfgDeals" rows="2"></textarea>
+      <button class="btn-setting" id="btnSaveCfg">บันทึกค่ากระดาน</button>
+      <span id="cfgMsg" class="err"></span>
+    </details>
+  </div>
 </div></div>
 
 <div class="main-layout" id="game" hidden>
@@ -33,7 +46,7 @@
       <div class="board-middle-row">
         <div class="side-col left-col" id="colL"></div>
         <div class="central-floor"><div class="stock-bg-overlay">
-          <div class="boss-logo-banner"><h1>I'm the BOSS!</h1><p id="roundInfo">อย่ายอมให้บอสสั่ง</p></div>
+          <div class="boss-logo-banner"><h1>I'm the BOSS!</h1><p id="roundInfo">อย่าซ่ากับบอส</p></div>
           <div class="deal-cards-area">
             <div class="deck-box"><div class="deck-graphic">💼</div></div>
             <div class="active-deal-card"><div class="deal-header" id="dealNo">#-</div><div class="deal-amount" id="dealAmt">-</div><div class="deal-stacks" id="dealSeats"></div></div>
@@ -47,10 +60,10 @@
   </div></main>
 
   <aside class="right-sidebar">
-    <div class="side-card"><div class="side-card-header"><span>ห้อง <b id="roomCode"></b></span><button class="btn-setting" id="btnStart" hidden>เริ่มเกม</button></div>
+    <div class="side-card"><div class="side-card-header"><span>ห้อง <b id="roomCodeGame"></b></span></div>
       <ul class="voice-users" id="plist"></ul></div>
     <div class="side-card"><div class="side-card-header"><span>การ์ดอิทธิพลของคุณ</span></div>
-      <div class="preview-cards-container" id="hand"></div>
+      <div class="hand-fan" id="hand"></div>
       <div class="deck-count" id="handHint">เลือกการ์ด แล้วเลือกเป้าหมาย</div></div>
     <div class="side-card chat-card"><div class="side-card-header"><span>บันทึก / แชท</span></div>
       <div id="log" class="logbox"></div>
